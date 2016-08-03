@@ -4,56 +4,99 @@ using System.Collections.Generic;
 
 public class customTerrain : MonoBehaviour {
 
-    int width = 17;
-    int height = 17;
+    int width = 512;
+    int height = 512;
     float[] heightData;
-	// Use this for initialization
-	void Start () {
-        int rowNum = height-1;
-        int colNum = width-1;
+    meshData[] meshAry;
+    Mesh[] meshs;
 
+    class meshData
+    {
+        public Vector3[] vertices;
+        public Vector2[] uv;
+        public int[] triangles;
+    }
+	// Use this for initialization
+	void Start () 
+    {
         heightData = new float[width * height];
         readHeightData();
 
-        int[] triangle = new int[rowNum*colNum*6];
-        Vector3[] vertexs = new Vector3[rowNum * colNum * 4];
-        Vector2[] uvs = new Vector2[rowNum*colNum*4];
+        int rowNum = height - 1;
+        int colNum = width - 1;
+        int perMeshVertexCount = 65000;
+        int perMeshIndexCount = perMeshVertexCount/4*6;
+        int meshCount = rowNum*colNum*4/perMeshVertexCount+1;
 
-        for (int row=0; row<rowNum; row++)
+        meshs = new Mesh[meshCount];
+        meshAry = new meshData[meshCount];
+
+        GameObject prefab = (GameObject)Resources.Load("prefab/terrainblock");
+
+        for (int i=0; i<meshCount; i++)
         {
-            for (int col=0; col<colNum; col++)
-            {
-                int vertexIndex = (row*rowNum+col)*4;
-                int heightDataIndex = row * width + col;
-                vertexs[vertexIndex] = new Vector3(col, heightData[heightDataIndex], row);
-                vertexs[vertexIndex + 1] = new Vector3(col + 1, heightData[heightDataIndex+1], row);
-                vertexs[vertexIndex + 2] = new Vector3(col + 1, heightData[heightDataIndex+width], row + 1);
-                vertexs[vertexIndex + 3] = new Vector3(col, heightData[heightDataIndex+width+1], row + 1);
-                
-                uvs[vertexIndex] = new Vector2(0.0f, 1.0f);
-                uvs[vertexIndex+1] = new Vector2(1.0f, 1.0f);
-                uvs[vertexIndex+2] = new Vector2(1.0f, 0.0f);
-                uvs[vertexIndex+3] = new Vector2(0.0f, 0.0f);
+            GameObject obj = (GameObject)GameObject.Instantiate(prefab);
+            obj.transform.localScale = Vector3.one;
+            obj.transform.localPosition = Vector3.zero;
+            meshs[i] = obj.GetComponent<MeshFilter>().mesh;
+            meshAry[i] = new meshData();
+            meshAry[i].vertices = new Vector3[perMeshVertexCount];
+            meshAry[i].triangles = new int[perMeshIndexCount];
+            meshAry[i].uv = new Vector2[perMeshVertexCount];
+        }
 
-                int triangleIndex = (row*rowNum+col)*6;
-                triangle[triangleIndex] = vertexIndex+3;
-                triangle[triangleIndex+1] = vertexIndex+2;
-                triangle[triangleIndex+2] = vertexIndex+1;
-                triangle[triangleIndex+3] = vertexIndex+1;
-                triangle[triangleIndex+4] = vertexIndex;
-                triangle[triangleIndex+5] = vertexIndex+3;
+        for (int row = 0; row < rowNum; row++)
+        {
+            for (int col = 0; col < colNum; col++)
+            {
+                int curIndex = (row * rowNum + col) * 4;
+                int meshIndex = curIndex / perMeshVertexCount;
+                int vertexIndex = curIndex % perMeshVertexCount;
+                int heightDataIndex = row * width + col;
+                meshAry[meshIndex].vertices[vertexIndex].x = col;
+                meshAry[meshIndex].vertices[vertexIndex].y = heightData[heightDataIndex];
+                meshAry[meshIndex].vertices[vertexIndex].z = row;
+
+                meshAry[meshIndex].vertices[vertexIndex + 1].x = col;
+                meshAry[meshIndex].vertices[vertexIndex + 1].y = heightData[heightDataIndex + 1];
+                meshAry[meshIndex].vertices[vertexIndex + 1].z = row;
+
+                meshAry[meshIndex].vertices[vertexIndex + 2].x = col + 1;
+                meshAry[meshIndex].vertices[vertexIndex + 2].y = heightData[heightDataIndex + width];
+                meshAry[meshIndex].vertices[vertexIndex + 2].z = row + 1;
+
+                meshAry[meshIndex].vertices[vertexIndex + 3].x = col;
+                meshAry[meshIndex].vertices[vertexIndex + 3].y = heightData[heightDataIndex + width + 1];
+                meshAry[meshIndex].vertices[vertexIndex + 3].z = row + 1;
+
+                meshAry[meshIndex].uv[vertexIndex].x = 0.0f;
+                meshAry[meshIndex].uv[vertexIndex].y = 1.0f;
+
+                meshAry[meshIndex].uv[vertexIndex + 1].x = 1.0f;
+                meshAry[meshIndex].uv[vertexIndex + 1].y = 1.0f;
+
+                meshAry[meshIndex].uv[vertexIndex + 2].x = 1.0f;
+                meshAry[meshIndex].uv[vertexIndex + 2].y = 0.0f;
+
+                meshAry[meshIndex].uv[vertexIndex + 3].x = 0.0f;
+                meshAry[meshIndex].uv[vertexIndex + 3].y = 0.0f;
+
+                int triangleIndex = (row * rowNum + col) * 6 % perMeshIndexCount;
+                meshAry[meshIndex].triangles[triangleIndex] = vertexIndex + 3;
+                meshAry[meshIndex].triangles[triangleIndex + 1] = vertexIndex + 2;
+                meshAry[meshIndex].triangles[triangleIndex + 2] = vertexIndex + 1;
+                meshAry[meshIndex].triangles[triangleIndex + 3] = vertexIndex + 1;
+                meshAry[meshIndex].triangles[triangleIndex + 4] = vertexIndex;
+                meshAry[meshIndex].triangles[triangleIndex + 5] = vertexIndex + 3;
             }
         }
 
-
-
-        MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
-        //MeshRenderer meshRender = gameObject.AddComponent<MeshRenderer>();
-
-        Mesh mesh = meshFilter.mesh;
-        mesh.vertices = vertexs;
-        mesh.uv = uvs;
-        mesh.triangles = triangle;
+        for (int i = 0; i < meshCount; i++)
+        {
+            meshs[i].vertices = meshAry[i].vertices;
+            meshs[i].uv = meshAry[i].uv;
+            meshs[i].triangles = meshAry[i].triangles;
+        }
 	}
 
 
@@ -65,7 +108,8 @@ public class customTerrain : MonoBehaviour {
         {
             for (int j=0; j<heightMap.width; j++)
             {
-                heightData[i*heightMap.width+j] = heightMap.GetPixel(j, i).r*10/255;
+                heightData[i*heightMap.width+j] = heightMap.GetPixel(j, i).r*100;
+                //Debug.Log(heightMap.GetPixel(j,i));
             }
         }
     }
