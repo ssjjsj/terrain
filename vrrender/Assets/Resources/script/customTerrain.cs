@@ -57,16 +57,16 @@ public class customTerrain : MonoBehaviour {
                 meshAry[meshIndex].vertices[vertexIndex].y = heightData[heightDataIndex];
                 meshAry[meshIndex].vertices[vertexIndex].z = row;
 
-                meshAry[meshIndex].vertices[vertexIndex + 1].x = col;
+                meshAry[meshIndex].vertices[vertexIndex + 1].x = col+1;
                 meshAry[meshIndex].vertices[vertexIndex + 1].y = heightData[heightDataIndex + 1];
                 meshAry[meshIndex].vertices[vertexIndex + 1].z = row;
 
                 meshAry[meshIndex].vertices[vertexIndex + 2].x = col + 1;
-                meshAry[meshIndex].vertices[vertexIndex + 2].y = heightData[heightDataIndex + width];
+                meshAry[meshIndex].vertices[vertexIndex + 2].y = heightData[heightDataIndex + width+1];
                 meshAry[meshIndex].vertices[vertexIndex + 2].z = row + 1;
 
                 meshAry[meshIndex].vertices[vertexIndex + 3].x = col;
-                meshAry[meshIndex].vertices[vertexIndex + 3].y = heightData[heightDataIndex + width + 1];
+                meshAry[meshIndex].vertices[vertexIndex + 3].y = heightData[heightDataIndex + width];
                 meshAry[meshIndex].vertices[vertexIndex + 3].z = row + 1;
 
                 meshAry[meshIndex].uv[vertexIndex].x = 0.0f;
@@ -82,12 +82,13 @@ public class customTerrain : MonoBehaviour {
                 meshAry[meshIndex].uv[vertexIndex + 3].y = 0.0f;
 
                 int triangleIndex = (row * rowNum + col) * 6 % perMeshIndexCount;
-                meshAry[meshIndex].triangles[triangleIndex] = vertexIndex + 3;
-                meshAry[meshIndex].triangles[triangleIndex + 1] = vertexIndex + 2;
-                meshAry[meshIndex].triangles[triangleIndex + 2] = vertexIndex + 1;
-                meshAry[meshIndex].triangles[triangleIndex + 3] = vertexIndex + 1;
-                meshAry[meshIndex].triangles[triangleIndex + 4] = vertexIndex;
-                meshAry[meshIndex].triangles[triangleIndex + 5] = vertexIndex + 3;
+                meshAry[meshIndex].triangles[triangleIndex] = vertexIndex+2;
+                meshAry[meshIndex].triangles[triangleIndex + 1] = vertexIndex + 1;
+                meshAry[meshIndex].triangles[triangleIndex + 2] = vertexIndex;
+               
+                meshAry[meshIndex].triangles[triangleIndex + 3] = vertexIndex;
+                meshAry[meshIndex].triangles[triangleIndex + 4] = vertexIndex + 3;
+                meshAry[meshIndex].triangles[triangleIndex + 5] = vertexIndex+2;
             }
         }
 
