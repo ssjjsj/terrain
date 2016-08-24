@@ -7,10 +7,10 @@
 		_VegetationColor ("Vegetation Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_ErosionColor ("Erosion Color", Color) = (1.0, 1.0, 1.0, 1.0)
 
-		_SandHeight ("Sand", Float) = 1.0
-		_RockHeight ("Rock", Float) = 1.0
-		_VegetationHeight ("Vegetation", Float) = 1.0
-		_ErosionHeight ("Erosion", Float) = 1.0
+		_SandHeight ("Sand", Vector) = (0, 20, 50)
+		_RockHeight ("Rock", Vector) = (30, 100, 150)
+		_VegetationHeight ("Vegetation", Vector) = (120, 180, 200)
+		_ErosionHeight ("Erosion", Vector) = (190, 220, 255)
 	}
 
 	SubShader
@@ -50,10 +50,10 @@
 			float4 _VegetationColor; 
 			float4 _ErosionColor;
 
-			float _SandHeight;
-			float _RockHeight; 
-			float _VegetationHeight; 
-			float _ErosionHeight;
+			float4 _SandHeight;
+			float4 _RockHeight; 
+			float4 _VegetationHeight; 
+			float4 _ErosionHeight;
 			
 			v2f vert (appdata v)
 			{
@@ -65,30 +65,34 @@
 				return o;
 			}
 			
+			float4 heightColor(float height, float4 heightRange, float4 color)
+			{
+			    float4 col = float4(0, 0, 0, 1);
+			    if (height > heightRange.x && height <= heightRange.y)
+				{
+				    float delta = (height-heightRange.x)/(heightRange.y-heightRange.x);
+				    col.r = color.r*delta;
+					col.g = color.g*delta;
+					col.b = color.b*delta;
+				}
+				else if (height > heightRange.y && height < heightRange.z)
+				{
+				    float delta = 1-(height-heightRange.y)/(heightRange.z-heightRange.y);
+				    col.r = color.r*delta;
+					col.g = color.g*delta;
+					col.b = color.b*delta;
+				}
+				
+				return col;
+			}
+			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = _ErosionColor;
-				if (i.height<_RockHeight)
-				{
-				    float delta = (i.height-_SandHeight)/(_RockHeight-_SandHeight);
-				    col.r = lerp(_SandColor.r, _RockColor.r, delta);
-					col.g = lerp(_SandColor.g, _RockColor.g, delta);
-					col.b = lerp(_SandColor.b, _RockColor.b, delta);
-				}
-				else if (i.height <_VegetationHeight)
-				{
-					float delta = (i.height-_RockColor)/(_VegetationHeight-_RockHeight);
-				    col.r = lerp(_RockColor.r, _VegetationColor.r, delta);
-					col.g = lerp(_RockColor.g, _VegetationColor.g, delta);
-					col.b = lerp(_RockColor.b, _VegetationColor.b, delta);
-				}
-				else if (i.height <_ErosionHeight)
-				{
-				    float delta = (i.height-_VegetationHeight)/(_ErosionHeight-_VegetationHeight);
-				    col.r = lerp(_VegetationColor.r, _ErosionColor.r, delta);
-					col.g = lerp(_VegetationColor.g, _ErosionColor.g, delta);
-					col.b = lerp(_VegetationColor.b, _ErosionColor.b, delta);
-				}
+                float4 col = heightColor(i.height, _SandHeight, _SandColor) +
+                            heightColor(i.height, _ErosionHeight, _ErosionColor) +
+                            heightColor(i.height, _RockHeight, _RockColor) +
+                            heightColor(i.height, _VegetationHeight, _VegetationColor);
+                col.a = 1.0;							
 				// apply fog
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;

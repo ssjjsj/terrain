@@ -1,0 +1,6 @@
+Base path: D:/Program Files/Unity/Editor/Data
+Cmd: getPlatforms
+Cmd: compileSnippet
+  error: 2 plat 8 at (60): undeclared identifier '_ErosionColor'\nCompiling Fragment program
+Platform defines: UNITY_NO_LINEAR_COLORSPACE UNITY_ENABLE_REFLECTION_BUFFERS UNITY_PBS_USE_BRDF3
+  api=8 type=1 insize=1939 outsize=0 kw= pd=UNITY_NO_LINEAR_COLORSPACE UNITY_ENABLE_REFLECTION_BUFFERS UNITY_PBS_USE_BRDF3 ok=0
